@@ -1,0 +1,33 @@
+<p>Cette page vous permet de demander la suppression définitive de votre compte
+{{ application_name }} et de toutes les données associées.</p>
+
+{{ banner }}
+
+<form method="post" action="">
+  <label>Email du compte
+    <input type="email" name="email" value="{{ email_value }}" required>
+  </label>
+  <label>Code personnel (visible dans l'app, Réglages)
+    <input type="text" name="code" value="{{ code_value }}" required>
+  </label>
+  <label>Motif (optionnel)
+    <textarea name="reason" rows="3">{{ reason_value }}</textarea>
+  </label>
+  <button type="submit">Demander la suppression</button>
+</form>
+
+<h2>Que se passe-t-il ensuite ?</h2>
+<p>Votre demande est transmise à un administrateur, qui l'examine sous quelques jours et
+supprime définitivement le compte. Vous êtes prévenu par notification dans l'app si votre
+demande est annulée.</p>
+
+<h2>Quelles données sont supprimées ?</h2>
+<ul>
+  <li>Profil (nom, photo, date de naissance, statut relationnel, code personnel)</li>
+  <li>Portefeuille de points ANK, solde de bonus ZO et historique des transactions</li>
+  <li>Relations envoyées ou reçues et statut relationnel</li>
+  <li>Demande(s) de vérification d'identité et pièce jointe associée</li>
+  <li>Notifications reçues et sessions de connexion</li>
+</ul>
+<p>Un enregistrement anonymisé de cette demande de suppression (sans lien vers votre compte)
+peut être conservé après coup à des fins d'audit.</p>
