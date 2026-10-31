@@ -2,6 +2,10 @@ import uuid
 
 from fastapi.testclient import TestClient
 
+from app.core.config import get_settings
+
+settings=get_settings()
+
 from app.modules.relationships.model import RelationshipRequest, RelationshipRequestStatus
 from app.modules.users.model import User
 
@@ -9,7 +13,7 @@ from app.modules.users.model import User
 def _register(client: TestClient, suffix: str | None = None, gender: str = "male") -> dict:
     s = suffix or uuid.uuid4().hex[:8]
     res = client.post(
-        "/api/v1/users/register",
+        f"{settings.api_v1_prefix}/users/register",
         json={
             "first_name": "Jean",
             "last_name": "Dupont",
@@ -28,7 +32,7 @@ def _register_and_login(client: TestClient, gender: str) -> dict:
     suffix = uuid.uuid4().hex[:8]
     email = f"sugg_{gender}_{suffix}@x.com"
     reg = client.post(
-        "/api/v1/users/register",
+        f"{settings.api_v1_prefix}/users/register",
         json={
             "first_name": "Sugg",
             "last_name": suffix,
@@ -38,7 +42,7 @@ def _register_and_login(client: TestClient, gender: str) -> dict:
         },
     )
     assert reg.status_code == 201
-    login = client.post("/api/v1/auth/login", json={"email": email, "password": "pass123"})
+    login = client.post(f"{settings.api_v1_prefix}/auth/login", json={"email": email, "password": "pass123"})
     assert login.status_code == 200
     token = login.json()["accessToken"]
     return {"id": reg.json()["id"], "headers": {"Authorization": f"Bearer {token}"}}
@@ -63,7 +67,7 @@ def test_register_gender_persisted(client: TestClient):
 def test_register_missing_gender(client: TestClient):
     suffix = uuid.uuid4().hex[:8]
     res = client.post(
-        "/api/v1/users/register",
+        f"{settings.api_v1_prefix}/users/register",
         json={
             "first_name": "Jean",
             "last_name": "Dupont",
@@ -110,7 +114,7 @@ def test_register_duplicate_email(client: TestClient):
 
 
 def test_get_me(client: TestClient, auth_headers: dict):
-    res = client.get("/api/v1/users/me", headers=auth_headers)
+    res = client.get(f"{settings.api_v1_prefix}/users/me", headers=auth_headers)
     assert res.status_code == 200
     body = res.json()
     assert "email" in body
@@ -118,13 +122,13 @@ def test_get_me(client: TestClient, auth_headers: dict):
 
 
 def test_get_me_unauthenticated(client: TestClient):
-    res = client.get("/api/v1/users/me")
+    res = client.get(f"{settings.api_v1_prefix}/users/me")
     assert res.status_code == 401
 
 
 def test_update_me(client: TestClient, auth_headers: dict):
     res = client.patch(
-        "/api/v1/users/me",
+        f"{settings.api_v1_prefix}/users/me",
         json={"first_name": "Marie"},
         headers=auth_headers,
     )
@@ -133,14 +137,14 @@ def test_update_me(client: TestClient, auth_headers: dict):
 
 
 def test_search_users_requires_auth(client: TestClient):
-    res = client.get("/api/v1/users/search?name=Jean")
+    res = client.get(f"{settings.api_v1_prefix}/users/search?name=Jean")
     assert res.status_code == 401
 
 
 def test_search_users(client: TestClient, auth_headers: dict):
     suffix = uuid.uuid4().hex[:8]
     client.post(
-        "/api/v1/users/register",
+        f"{settings.api_v1_prefix}/users/register",
         json={
             "first_name": "Unique",
             "last_name": f"Name{suffix}",
@@ -149,7 +153,7 @@ def test_search_users(client: TestClient, auth_headers: dict):
             "gender": "female",
         },
     )
-    res = client.get(f"/api/v1/users/search?name=Unique", headers=auth_headers)
+    res = client.get(f"{settings.api_v1_prefix}/users/search?name=Unique", headers=auth_headers)
     assert res.status_code == 200
     body = res.json()
     assert body["total"] >= 1
@@ -160,17 +164,17 @@ def test_search_users(client: TestClient, auth_headers: dict):
 
 
 def test_list_users_requires_admin(client: TestClient, auth_headers: dict):
-    res = client.get("/api/v1/users", headers=auth_headers)
+    res = client.get(f"{settings.api_v1_prefix}/users", headers=auth_headers)
     assert res.status_code == 403
 
 
 def test_register_invalid_payload(client: TestClient):
-    res = client.post("/api/v1/users/register", json={"email": "not-an-email", "password": "p"})
+    res = client.post(f"{settings.api_v1_prefix}/users/register", json={"email": "not-an-email", "password": "p"})
     assert res.status_code == 400
 
 
 def test_suggestions_requires_auth(client: TestClient):
-    res = client.get("/api/v1/users/suggestions")
+    res = client.get(f"{settings.api_v1_prefix}/users/suggestions")
     assert res.status_code == 401
 
 
@@ -181,7 +185,7 @@ def test_suggestions_returns_only_opposite_gender(client: TestClient):
     _register_and_login(client, "male")  # same-gender noise, must not appear
 
     res = client.get(
-        "/api/v1/users/suggestions?page=1&page_size=10", headers=requester["headers"]
+        f"{settings.api_v1_prefix}/users/suggestions?page=1&page_size=10", headers=requester["headers"]
     )
     assert res.status_code == 200
     body = res.json()
@@ -197,14 +201,14 @@ def test_suggestions_small_pool_wraparound(client: TestClient):
     female_2 = _register_and_login(client, "female")
 
     page_1 = client.get(
-        "/api/v1/users/suggestions?page=1&page_size=10", headers=requester["headers"]
+        f"{settings.api_v1_prefix}/users/suggestions?page=1&page_size=10", headers=requester["headers"]
     )
     assert page_1.status_code == 200
     page_1_ids = [item["id"] for item in page_1.json()["items"]]
     assert set(page_1_ids) == {female_1["id"], female_2["id"]}
 
     page_3 = client.get(
-        "/api/v1/users/suggestions?page=3&page_size=10", headers=requester["headers"]
+        f"{settings.api_v1_prefix}/users/suggestions?page=3&page_size=10", headers=requester["headers"]
     )
     assert page_3.status_code == 200
     body = page_3.json()
@@ -236,7 +240,7 @@ def test_suggestions_excludes_existing_relation(client: TestClient):
     asyncio.run(_insert_accepted_request())
 
     res = client.get(
-        "/api/v1/users/suggestions?page=1&page_size=10", headers=requester["headers"]
+        f"{settings.api_v1_prefix}/users/suggestions?page=1&page_size=10", headers=requester["headers"]
     )
     assert res.status_code == 200
     ids = {item["id"] for item in res.json()["items"]}
@@ -271,7 +275,7 @@ def test_suggestions_null_gender_requester_returns_empty(client: TestClient):
 
     token = create_access_token(str(legacy_user.id), legacy_user.email, legacy_user.role.value)
     res = client.get(
-        "/api/v1/users/suggestions", headers={"Authorization": f"Bearer {token}"}
+        f"{settings.api_v1_prefix}/users/suggestions", headers={"Authorization": f"Bearer {token}"}
     )
     assert res.status_code == 200
     assert res.json()["items"] == []
