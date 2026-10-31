@@ -25,3 +25,4 @@ from app.modules.relationships.model import (
 from app.modules.users.model import User  # noqa: F401,E402
 from app.modules.wallet.model import AnkTransaction, Wallet  # noqa: F401,E402
 from app.modules.verification.model import VerificationRequest
+from app.modules.users.pending_model import PendingRegistration

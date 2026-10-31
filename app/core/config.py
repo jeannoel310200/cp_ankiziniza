@@ -8,9 +8,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=os.getenv("ENV_FILE", ".env"), extra="ignore")
 
-    app_name: str | None = "My API"
+    app_name: str | None = "APIs TEST"
     environment: str | None = "development"
-    api_v1_prefix: str | None = "/api/v1"
+    api_v1_prefix: str | None = "/myapi/v1"
 
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/mydb"
 

@@ -135,9 +135,9 @@ async def lifespan(_: FastAPI):
 app = FastAPI(
     title=settings.app_name,
     lifespan=lifespan,
-    docs_url="/api/docs" if settings.environment == "development" else None,
-    redoc_url="/api/redoc" if settings.environment == "development" else None,
-    openapi_url="/api/openapi.json" if settings.environment == "development" else None,
+    docs_url="/myapi/docs" if settings.environment == "development" else None,
+    redoc_url="/myapi/redoc" if settings.environment == "development" else None,
+    openapi_url="/myapi/openapi.json" if settings.environment == "development" else None,
 )
 
 app.state.limiter = limiter
