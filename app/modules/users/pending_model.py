@@ -25,8 +25,4 @@ class PendingRegistration(Base, UUIDTimestampMixin):
     first_name: Mapped[str] = mapped_column(String(120), nullable=False)
     last_name: Mapped[str] = mapped_column(String(120), nullable=False)
     phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
-    gender: Mapped[GenderEnum | None] = mapped_column(
-        Enum(GenderEnum, values_callable=lambda obj: [e.value for e in obj], name="gender_enum"),
-        nullable=True,
-    )
     code_verification: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
